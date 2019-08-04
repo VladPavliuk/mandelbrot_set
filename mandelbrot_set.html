@@ -1,0 +1,126 @@
+Click on the canvas
+
+<canvas id="canvas"></canvas>
+
+<script>
+    var canvas = document.getElementById('canvas');
+    canvas.width = 800;
+    canvas.height = 800;
+
+    //setTimeout(() => {throw 'stop'}, 10000);
+
+    var context = canvas.getContext('2d');
+
+    //context.fillStyle = 'black';
+    //context.fillRect(0, 0, canvas.width, canvas.height);
+
+    var convertToScreen = (x, y, unit) => {
+        return {
+            x: canvas.width / 2 + x * unit,
+            y: canvas.height / 2 - y * unit
+        };
+    };
+
+    var convertToGraph = (x, y, unit) => {
+        return {
+            x: x / unit - canvas.width / (2 * unit),
+            y: -1 * (y / unit - canvas.height / (2 * unit))
+        };
+    };
+
+
+    var drawPoint = (x, y, color, unit) => {
+        context.fillStyle = color;
+        var location = convertToScreen(x, y, unit);
+
+        context.fillRect(location.x, location.y, 5, 5);
+    };
+
+    var getRandomColor = () => {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    var multipleComplex = (left, right) => {
+        return {
+            re: left.re * right.re - left.im * right.im,
+            im: left.re * right.im + left.im * right.re
+        }
+    };
+
+    var checkStability = (number, degree, addition) => {
+        for (var i = 1; i < degree; i++) {
+            number = multipleComplex({
+                re: number.re,
+                im: number.im
+            }, {
+                re: number.re,
+                im: number.im
+            });
+
+            if (addition) {
+                number.re += addition.re;
+                number.im += addition.im;
+            }
+
+            if (number.re > 1000 || number.im > 1000) {
+                if (i < 10) {
+                    return 'white';
+                }
+
+                if (i < 15) {
+                    return 'yellow';
+                }
+
+                if (i < 20) {
+                    return 'red';
+                }
+
+                if (i < 30) {
+                    return 'green';
+                }
+
+                if (i < 40) {
+                    return 'blue';
+                }
+
+                return 'black';
+            }
+        }
+
+        return 'black';
+    };
+
+    var unit = 300;
+
+    var generateSet = c => {
+        for (var i = -1.5; i < 1.5; i += 0.01) {
+            for (var j = -1.5; j < 1.5; j += 0.01) {
+                drawPoint(j, i, checkStability({
+                    re: j,
+                    im: i
+                }, 50, c), unit);
+            }
+        }
+    };
+
+    generateSet({
+        re: 0,
+        im: 0
+    });
+    drawPoint(1, 0, 'red', unit);
+
+
+    canvas.addEventListener('click', e => {
+        var test = convertToGraph(e.clientX, e.clientY, unit);
+
+        generateSet({
+            re: test.x,
+            im: test.y
+        });
+    });
+</script>
